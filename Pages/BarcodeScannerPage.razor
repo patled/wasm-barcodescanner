@@ -53,9 +53,6 @@
             await file.Data.CopyToAsync(streamToWorkWith);
 
 
-            var imageFile = await file.ToImageFileAsync("image/jpeg", 800, 600);
-
-
             var res = await BarcodeScannerService.GetBarcodeFromFileAsync(streamToWorkWith);
             DecodedCode = res;
             var base64String = await BarcodeScannerService.StreamToBase64StringAsync(streamToWorkWith);
