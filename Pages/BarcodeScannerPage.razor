@@ -1,0 +1,66 @@
+﻿@page "/"
+@using System.IO
+@inject Services.BarcodeScannerService BarcodeScannerService
+
+<h3>BarcodeScannerPage</h3>
+
+<InputFile OnChange="HandleFileSelected" />
+
+<br />
+<br />
+<br />
+
+<table width="100%">
+    <tr>
+        <th>Datei</th>
+        <th>Bild</th>
+        <th>erkannter Code</th>
+    </tr>
+    <tr>
+        <td>
+            @FileName
+        </td>
+        <td>
+            @if (!string.IsNullOrEmpty(ImageSource))
+            {
+                <img src="@ImageSource" alt="bild" />
+            }
+        </td>
+        <td>
+            <p>@DecodedCode</p>
+        </td>
+    </tr>
+</table>
+
+@code {
+
+    public string ImageSource = string.Empty;
+    public string DecodedCode = string.Empty;
+    public string FileName = string.Empty;
+
+    private async Task HandleFileSelected(IFileListEntry[] files)
+    {
+        ImageSource = string.Empty;
+        DecodedCode = string.Empty;
+        FileName = string.Empty;
+
+        var file = files.FirstOrDefault();
+        if (file != null)
+        {
+            FileName = file.Name;
+
+            var streamToWorkWith = new MemoryStream();
+            await file.Data.CopyToAsync(streamToWorkWith);
+
+
+            var imageFile = await file.ToImageFileAsync("image/jpeg", 800, 600);
+
+
+            var res = await BarcodeScannerService.GetBarcodeFromFileAsync(streamToWorkWith);
+            DecodedCode = res;
+            var base64String = await BarcodeScannerService.StreamToBase64StringAsync(streamToWorkWith);
+            ImageSource = "data:image/png;base64, " + base64String;
+        }
+    }
+
+}
